@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Netflix Clone</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Segoe UI", Arial, sans-serif;
+}
+
+body{
+  background:linear-gradient(180deg,#0f1014,#000);
+  color:#fff;
+}
+
+/* ================= NAVBAR ================= */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 50px;
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(12px);
+}
+
+.left{
+  display:flex;
+  align-items:center;
+  gap:40px;
+}
+
+.logo{
+  font-size:26px;
+  font-weight:900;
+  color:#e50914;
+  letter-spacing:1px;
+}
+
+/* NAV MENU */
+nav span{
+  position:relative;
+  margin-right:20px;
+  cursor:pointer;
+  color:#bbb;
+  font-weight:500;
+  padding-bottom:6px;
+  transition:.3s;
+}
+
+nav span::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:0%;
+  height:2px;
+  background:#e50914;
+  transition:.3s;
+}
+
+nav span:hover,
+nav span.active{
+  color:#fff;
+}
+
+nav span:hover::after,
+nav span.active::after{
+  width:100%;
+}
+
+/* PROFILE */
+.profile{
+  position:relative;
+  cursor:pointer;
+}
+
+.profile img{
+  width:36px;
+  height:36px;
+  border-radius:6px;
+}
+
+.dropdown{
+  position:absolute;
+  right:0;
+  top:50px;
+  background:#111;
+  border-radius:6px;
+  padding:10px;
+  display:none;
+  box-shadow:0 10px 30px rgba(0,0,0,.6);
+}
+
+.profile:hover .dropdown{
+  display:block;
+}
+
+.dropdown button{
+  background:#e50914;
+  border:none;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:4px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.dropdown button:hover{
+  background:#f6121d;
+}
+
+/* ================= HERO ================= */
+.hero{
+  padding:80px 50px;
+  background:
+    linear-gradient(to top,#0f1014,rgba(0,0,0,.3)),
+    url("https://images.unsplash.com/photo-1608178398319-48f814d0750c");
+  background-size:cover;
+  background-position:center;
+}
+
+.hero h1{
+  font-size:44px;
+  font-weight:800;
+}
+
+.hero p{
+  margin-top:10px;
+  font-size:18px;
+  color:#ddd;
+}
+
+/* ================= MOVIES ================= */
+.movies{
+  padding:30px 50px 60px;
+}
+
+.movie-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:30px;
+}
+
+.movie-card{
+  position:relative;
+  background:rgba(255,255,255,.05);
+  border-radius:14px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:.4s;
+}
+
+.movie-card img{
+  width:100%;
+  height:330px;
+  object-fit:cover;
+  transition:.4s;
+}
+
+.movie-card p{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  padding:12px;
+  text-align:center;
+  font-weight:600;
+  background:linear-gradient(to top,rgba(0,0,0,.9),transparent);
+}
+
+.movie-card::after{
+  content:"▶ PLAY";
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:bold;
+  background:rgba(0,0,0,.6);
+  opacity:0;
+  transition:.4s;
+}
+
+.movie-card:hover::after{opacity:1;}
+.movie-card:hover img{transform:scale(1.1);}
+.movie-card:hover{
+  transform:translateY(-10px);
+  box-shadow:0 20px 40px rgba(229,9,20,.4);
+}
+
+/* ================= PLAYER ================= */
+.player{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.95);
+  z-index:999;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+}
+
+.player h2{margin-bottom:15px;}
+
+.player iframe{
+  width:80%;
+  max-width:900px;
+  height:480px;
+  border-radius:12px;
+  border:none;
+}
+
+.close{
+  position:absolute;
+  top:25px;
+  right:35px;
+  font-size:30px;
+  cursor:pointer;
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .topbar{padding:14px 20px;}
+  nav{display:none;}
+  .hero h1{font-size:30px;}
+  .player iframe{width:95%;height:300px;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<header class="topbar">
+  <div class="left">
+    <div class="logo">NETFLIX</div>
+    <nav>
+      <span class="active" onclick="filterMovies('all',this)">ALL</span>
+      <span onclick="filterMovies('action',this)">Action</span>
+      <span onclick="filterMovies('drama',this)">Drama</span>
+      <span onclick="filterMovies('thriller',this)">Thriller</span>
+      
+    </nav>
+  </div>
+
+  
+</header>
+
+<section class="hero">
+  <h1>Telugu Movies & Entertainment</h1>
+  <p>Action • Drama • Thriller</p>
+</section>
+
+<section class="movies">
+  <div class="movie-grid" id="movieGrid"></div>
+</section>
+
+<!-- PLAYER -->
+<div class="player" id="player">
+  <span class="close" onclick="closePlayer()">✖</span>
+  <h2 id="playerTitle"></h2>
+  <iframe
+    id="videoPlayer"
+    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+    allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin">
+  </iframe>
+</div>
+
+<script>
+const movies=[
+  
+  
+  {
+    title:"Sye",
+    category:"action",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6i29gIPIKHOwStQQiQ_xRHQydun_0rZwN49JS_hMLhQ&s&ec=121507526",
+    video:"https://www.youtube.com/embed/UcRQz1MQRk8"
+  },
+  {
+    title:"Jersey",
+    category:"drama",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRn0bkHKRDVPYNpRgmn55iB8QC9zhoOE_MaJukPO1x3HQ&s&ec=121507526",
+    video:"https://www.youtube.com/embed/uqL3WznVBwA"
+  },
+  {
+    title:"Mahanati",
+    category:"drama",
+    img:"https://assets-in.bmscdn.com/iedb/movies/images/mobile/thumbnail/xlarge/mahanati-et00054544-09-03-2017-05-04-00.jpg",
+    video:"https://www.youtube.com/embed/OGPAVO1t2Cs"
+  },
+  {
+    title:"Evadu",
+    category:"thriller",
+    img:"https://m.media-amazon.com/images/M/MV5BYjIxNDk4YjMtOWZkNC00Mzk1LWEyYmMtMzU5MGQ1OWRmZGJmXkEyXkFqcGc@._V1_.jpg",
+    video:"https://www.youtube.com/embed/F6FrusMbjSg"
+  },
+   {
+    title:"Srimanthudu",
+    category:"drama",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_yL9dLEdHrpC4ULKX-KXBJ0FrGRXV01Fk-5cOeMBqEQ&s&ec=121507526",
+    video:"https://www.youtube.com/embed/EZGapI7yjh4"
+  },
+  {
+    title:"Janatha Garage",
+    category:"drama",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyPX88QuY4w18B5YrzeJkZwv78Z0b6oZHJO5XnfJdMAw&s&ec=121507526",
+    video:"https://www.youtube.com/embed/q6voJ13asIo"
+  },
+  {
+    title:"Goodachari",
+    category:"thriller",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmxbo0JGQku4gbyoWhQTAkExAdyXF2SmFSiQ&s",
+    video:"https://www.youtube.com/embed/lysoF97MOMk"
+  },
+  {
+    title:"Magadheera",
+    category:"action",
+    img:"https://m.media-amazon.com/images/M/MV5BMzQ0YWYyYjEtZTU2Ni00ZGZjLWJlZmQtYzliN2VlNDY0ZGE4XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    video:"https://www.youtube.com/embed/OCGOdofzuB0"
+  },
+  {
+    title:"RRR",
+    category:"action",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShWiCw_fb1z7OPzbYdj6l6P5dhDxb_ztYJBHKWhUAfww&s&ec=121507526",
+    video:"https://www.youtube.com/embed/BN1MwXUR3PM"
+  },
+  {
+    title:"Baahubali",
+    category:"action",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQa2fZhln004pRmciZlOLZcYIFTx93uPcCC5g&s",
+    video:"https://www.youtube.com/embed/22oYiWnAcKM"
+  },
+  {
+    title:"Pushpa",
+    category:"action",
+    img:"https://i.pinimg.com/736x/94/76/a4/9476a47dd17015484df26e3a0251c607.jpg",
+    video:"https://www.youtube.com/embed/j4FOvZqMy6Q"
+  },
+  {
+    title:"Eega",
+    category:"thriller",
+    img:"https://s.saregama.tech/image/c/fw_485/d/1a/15/eega.jpg",
+    video:"https://www.youtube.com/embed/01_8XnNolN4"
+  },
+  {
+    title:"Pokiri",
+    category:"action",
+    img:"https://m.media-amazon.com/images/M/MV5BNGEwOWUzNmYtYzE0MC00ZTk2LWI0NjAtMTIxMTRhMWQyYmU4XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    video:"https://www.youtube.com/embed/Tw1bK4GxWcM"
+  },
+  {
+    title:"Athadu",
+    category:"thriller",
+    img:"https://cinemachaat.com/wp-content/uploads/2010/09/athadu.jpg",
+    video:"https://www.youtube.com/embed/KWt9dzrc1Go"
+  },
+  {
+    title:"Gabbar Singh",
+    category:"action",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEXcj6wQSRyDx2RRCtWqtI8NqZpqzUCWdmcjZSeB-MOA&s&ec=121507526",
+    video:"https://www.youtube.com/embed/ZguO-71QAyA"
+  },
+ 
+  {
+    title:"Agent Sai Srinivasa Athreya",
+    category:"thriller",
+    img:"https://cinephilsamigo.wordpress.com/wp-content/uploads/2019/08/agent-sai-srinivasa-athreya_154165303300.jpg",
+    video:"https://www.youtube.com/embed/IYxFSCX9hyg"
+  },
+  
+];
+
+const movieGrid=document.getElementById("movieGrid");
+const player=document.getElementById("player");
+const videoPlayer=document.getElementById("videoPlayer");
+const playerTitle=document.getElementById("playerTitle");
+
+function displayMovies(list){
+  movieGrid.innerHTML="";
+  list.forEach(movie=>{
+    const card=document.createElement("div");
+    card.className="movie-card";
+    card.innerHTML=`<img src="${movie.img}"><p>${movie.title}</p>`;
+    card.onclick=()=>playMovie(movie);
+    movieGrid.appendChild(card);
+  });
+}
+
+function playMovie(movie){
+  player.style.display="flex";
+  document.body.style.overflow="hidden";
+  videoPlayer.src=movie.video+"?autoplay=1&playsinline=1&rel=0&modestbranding=1";
+  playerTitle.innerText=movie.title;
+}
+
+function closePlayer(){
+  videoPlayer.src="";
+  player.style.display="none";
+  document.body.style.overflow="auto";
+}
+
+function filterMovies(category,el){
+  document.querySelectorAll("nav span").forEach(n=>n.classList.remove("active"));
+  el.classList.add("active");
+  category==="all"
+    ? displayMovies(movies)
+    : displayMovies(movies.filter(m=>m.category===category));
+}
+
+function signOut(){
+  alert("Signed out successfully!");
+  // window.location.href="login.html";
+}
+
+displayMovies(movies);
+</script>
+
+</body>
+</html>
